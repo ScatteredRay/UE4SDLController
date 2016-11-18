@@ -81,6 +81,16 @@ public:
                     disabled = true;
             }
 
+            SDL_GameController* controller = SDL_GameControllerFromInstanceID(joystickId);
+            if(controller)
+            {
+                for(int32 i = 0; i < controllers.Num(); i++)
+                {
+                    if(controller == controllers[i])
+                        disabled = true;
+                }
+            }
+
             if(!disabled)
             {
 
@@ -118,6 +128,7 @@ public:
     FSDLController(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler)
         : MessageHandler(InMessageHandler)
 	{
+        // SDL_CONTROLLERDEVICEADDED May get called for every joystick, so this may be redundant
         for(int32 i = 0; i < SDL_NumJoysticks(); i++)
         {
             AddJoystick(i);
