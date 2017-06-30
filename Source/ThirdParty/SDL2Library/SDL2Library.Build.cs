@@ -5,7 +5,7 @@ using UnrealBuildTool;
 
 public class SDL2Library : ModuleRules
 {
-	public SDL2Library(TargetInfo Target)
+	public SDL2Library(ReadOnlyTargetRules Target) : base(Target)
 	{
 		Type = ModuleType.External;
 

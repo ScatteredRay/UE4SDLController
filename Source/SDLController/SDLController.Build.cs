@@ -5,7 +5,7 @@ using UnrealBuildTool;
 
 public class SDLController : ModuleRules
 {
-    public SDLController(TargetInfo Target)
+    public SDLController(ReadOnlyTargetRules Target) : base(Target)
     {
 
         PrivateIncludePathModuleNames.Add("TargetPlatform");
@@ -42,8 +42,6 @@ public class SDLController : ModuleRules
         {
         });
 
-        AddThirdPartyPrivateStaticDependencies(Target,
-            "SDL2Library"
-        );
+        AddEngineThirdPartyPrivateStaticDependencies(Target, "SDL2Library");
     }
 }
