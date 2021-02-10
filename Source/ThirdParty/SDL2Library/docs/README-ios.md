@@ -8,6 +8,7 @@ Building the Simple DirectMedia Layer for iOS 5.1+
 Requirements: Mac OS X 10.8 or later and the iOS 7+ SDK.
 
 Instructions:
+
 1.  Open SDL.xcodeproj (located in Xcode-iOS/SDL) in Xcode.
 2.  Select your desired target, and hit build.
 
@@ -74,17 +75,17 @@ By default SDL will not use the full pixel density of the screen on
 Retina/high-dpi capable devices. Use the SDL_WINDOW_ALLOW_HIGHDPI flag when
 creating your window to enable high-dpi support.
 
-When high-dpi support is enabled, SDL_GetWindowSize and display mode sizes
+When high-dpi support is enabled, SDL_GetWindowSize() and display mode sizes
 will still be in "screen coordinates" rather than pixels, but the window will
 have a much greater pixel density when the device supports it, and the
-SDL_GL_GetDrawableSize or SDL_GetRendererOutputSize functions (depending on
+SDL_GL_GetDrawableSize() or SDL_GetRendererOutputSize() functions (depending on
 whether raw OpenGL or the SDL_Render API is used) can be queried to determine
 the size in pixels of the drawable screen framebuffer.
 
 Some OpenGL ES functions such as glViewport expect sizes in pixels rather than
 sizes in screen coordinates. When doing 2D rendering with OpenGL ES, an
 orthographic projection matrix using the size in screen coordinates
-(SDL_GetWindowSize) can be used in order to display content at the same scale
+(SDL_GetWindowSize()) can be used in order to display content at the same scale
 no matter whether a Retina device is used or not.
 
 ==============================================================================
@@ -156,7 +157,7 @@ Notes -- Accelerometer as Joystick
 
 SDL for iPhone supports polling the built in accelerometer as a joystick device.  For an example on how to do this, see the accelerometer.c in the demos directory.
 
-The main thing to note when using the accelerometer with SDL is that while the iPhone natively reports accelerometer as floating point values in units of g-force, SDL_JoystickGetAxis reports joystick values as signed integers.  Hence, in order to convert between the two, some clamping and scaling is necessary on the part of the iPhone SDL joystick driver.  To convert SDL_JoystickGetAxis reported values BACK to units of g-force, simply multiply the values by SDL_IPHONE_MAX_GFORCE / 0x7FFF.
+The main thing to note when using the accelerometer with SDL is that while the iPhone natively reports accelerometer as floating point values in units of g-force, SDL_JoystickGetAxis() reports joystick values as signed integers.  Hence, in order to convert between the two, some clamping and scaling is necessary on the part of the iPhone SDL joystick driver.  To convert SDL_JoystickGetAxis() reported values BACK to units of g-force, simply multiply the values by SDL_IPHONE_MAX_GFORCE / 0x7FFF.
 
 ==============================================================================
 Notes -- OpenGL ES
@@ -164,7 +165,7 @@ Notes -- OpenGL ES
 
 Your SDL application for iOS uses OpenGL ES for video by default.
 
-OpenGL ES for iOS supports several display pixel formats, such as RGBA8 and RGB565, which provide a 32 bit and 16 bit color buffer respectively. By default, the implementation uses RGB565, but you may use RGBA8 by setting each color component to 8 bits in SDL_GL_SetAttribute.
+OpenGL ES for iOS supports several display pixel formats, such as RGBA8 and RGB565, which provide a 32 bit and 16 bit color buffer respectively. By default, the implementation uses RGB565, but you may use RGBA8 by setting each color component to 8 bits in SDL_GL_SetAttribute().
 
 If your application doesn't use OpenGL's depth buffer, you may find significant performance improvement by setting SDL_GL_DEPTH_SIZE to 0.
 
@@ -172,11 +173,11 @@ Finally, if your application completely redraws the screen each frame, you may f
 
 OpenGL ES on iOS doesn't use the traditional system-framebuffer setup provided in other operating systems. Special care must be taken because of this:
 
-- The drawable Renderbuffer must be bound to the GL_RENDERBUFFER binding point when SDL_GL_SwapWindow is called.
-- The drawable Framebuffer Object must be bound while rendering to the screen and when SDL_GL_SwapWindow is called.
+- The drawable Renderbuffer must be bound to the GL_RENDERBUFFER binding point when SDL_GL_SwapWindow() is called.
+- The drawable Framebuffer Object must be bound while rendering to the screen and when SDL_GL_SwapWindow() is called.
 - If multisample antialiasing (MSAA) is used and glReadPixels is used on the screen, the drawable framebuffer must be resolved to the MSAA resolve framebuffer (via glBlitFramebuffer or glResolveMultisampleFramebufferAPPLE), and the MSAA resolve framebuffer must be bound to the GL_READ_FRAMEBUFFER binding point, before glReadPixels is called.
 
-The above objects can be obtained via SDL_GetWindowWMInfo (in SDL_syswm.h).
+The above objects can be obtained via SDL_GetWindowWMInfo() (in SDL_syswm.h).
 
 ==============================================================================
 Notes -- Keyboard
@@ -219,13 +220,29 @@ Notes -- iPhone SDL limitations
 ==============================================================================
 
 Windows:
-	Full-size, single window applications only.  You cannot create multi-window SDL applications for iPhone OS.  The application window will fill the display, though you have the option of turning on or off the menu-bar (pass SDL_CreateWindow the flag SDL_WINDOW_BORDERLESS).
+	Full-size, single window applications only.  You cannot create multi-window SDL applications for iPhone OS.  The application window will fill the display, though you have the option of turning on or off the menu-bar (pass SDL_CreateWindow() the flag SDL_WINDOW_BORDERLESS).
 
 Textures:
 	The optimal texture formats on iOS are SDL_PIXELFORMAT_ABGR8888, SDL_PIXELFORMAT_ABGR8888, SDL_PIXELFORMAT_BGR888, and SDL_PIXELFORMAT_RGB24 pixel formats.
 
 Loading Shared Objects:
 	This is disabled by default since it seems to break the terms of the iOS SDK agreement for iOS versions prior to iOS 8. It can be re-enabled in SDL_config_iphoneos.h.
+
+==============================================================================
+Notes -- CoreBluetooth.framework
+==============================================================================
+
+SDL_JOYSTICK_HIDAPI is disabled by default. It can give you access to a lot
+more game controller devices, but it requires permission from the user before
+your app will be able to talk to the Bluetooth hardware. "Made For iOS"
+branded controllers do not need this as we don't have to speak to them
+directly with raw bluetooth, so many apps can live without this.
+
+You'll need to link with CoreBluetooth.framework and add something like this
+to your Info.plist:
+
+<key>NSBluetoothPeripheralUsageDescription</key>
+<string>MyApp would like to remain connected to nearby bluetooth Game Controllers and Game Pads even when you're not using the app.</string>
 
 ==============================================================================
 Game Center 
@@ -264,3 +281,20 @@ e.g.
     #endif
         return 0;
     }
+
+==============================================================================
+Deploying to older versions of iOS
+==============================================================================
+
+SDL supports deploying to older versions of iOS than are supported by the latest version of Xcode, all the way back to iOS 6.1
+
+In order to do that you need to download an older version of Xcode:
+https://developer.apple.com/download/more/?name=Xcode
+
+Open the package contents of the older Xcode and your newer version of Xcode and copy over the folders in Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/DeviceSupport
+
+Then open the file Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/SDKSettings.plist and add the versions of iOS you want to deploy to the key Root/DefaultProperties/DEPLOYMENT_TARGET_SUGGESTED_VALUES
+
+Open your project and set your deployment target to the desired version of iOS
+
+Finally, remove GameController from the list of frameworks linked by your application and edit the build settings for "Other Linker Flags" and add -weak_framework GameController
