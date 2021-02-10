@@ -1,85 +1,32 @@
-// Copyright (c) 2016, Indy Ray. All rights reserved.
-// See the LICENSE file for usage, modification, and distribution terms.
 
-#include "SDLControllerPrivatePCH.h"
+#include "SDLController.h"
 #include "Core.h"
-#include "ModuleManager.h"
-#include "IPluginManager.h"
-#include "InputDevice.h"
-
-#define SDL_MAIN_HANDLED
-#include "include/SDL.h"
+#include "Interfaces/IPluginManager.h"
+#include "SDLControllerConfig.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogSDLController, Log, All);
 
 #define LOCTEXT_NAMESPACE "FSDLControllerModule"
 
-void* SDL2Handle = nullptr;
 
-namespace
+void FSDLController::AddJoystick(int32 joystickId)
 {
-	inline float ShortToNormalizedFloat(short AxisVal)
+	TArray<FString> disabledControllerGUIDs = GetDefault<USDLControllerConfig>()->disabledControllerGUIDs;
+
+	if (SDL_IsGameController(joystickId))
 	{
-			// normalize [-32768..32767] -> [-1..1]
-			const float Norm = (AxisVal <= 0 ? 32768.f : 32767.f);
-			return float(AxisVal) / Norm;
-	}
-};
+		SDL_JoystickGUID joyGuid = SDL_JoystickGetDeviceGUID(joystickId);
+		char guid[33];
+		SDL_JoystickGetGUIDString(joyGuid, guid, sizeof(guid));
+		bool disabled = false;
 
-void FSDLControllerModule::StartupModule()
-{
-	IInputDeviceModule::StartupModule();
-	FString BaseDir = IPluginManager::Get().FindPlugin("SDLController")->GetBaseDir();
-
-	FString LibraryPath;
-#ifdef PLATFORM_WINDOWS
-	LibraryPath = FPaths::Combine(*BaseDir, TEXT("Source/ThirdParty/SDL2Library/lib/x64/SDL2.dll"));
-#endif // PLATFORM_WINDOWS
-
-	SDL2Handle = !LibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*LibraryPath) : nullptr;
-
-	if (SDL2Handle)
-	{
-	}
-	else
-	{
-		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("SDL2LibraryError", "Failed to load SDL2 third party library"));
-	}
-
-	SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK | SDL_INIT_EVENTS);
-}
-
-void FSDLControllerModule::ShutdownModule()
-{
-	SDL_Quit();
-	FPlatformProcess::FreeDllHandle(SDL2Handle);
-	SDL2Handle = nullptr;
-}
-
-class FSDLController : public IInputDevice
-{
-    TSharedRef<FGenericApplicationMessageHandler> MessageHandler;
-    TArray<SDL_GameController*> controllers;
-public:
-    void AddJoystick(int32 joystickId)
-    {
-        static const char* disabledControllerGUIDs[] =
-        {
-            "78696e70757401000000000000000000"
-        };
-        const uint32_t numDisabledControllers = sizeof(disabledControllerGUIDs) / sizeof(char*);
-
-        if(SDL_IsGameController(joystickId))
-        {
-            SDL_JoystickGUID joyGuid = SDL_JoystickGetDeviceGUID(joystickId);
-            char guid[33];
-            SDL_JoystickGetGUIDString(joyGuid, guid, sizeof(guid));
-            bool disabled = false;
-            for(int g = 0; g < numDisabledControllers; g++)
-            {
-                if(strcmp(guid, disabledControllerGUIDs[g]) == 0)
-                    disabled = true;
-            }
+		for (auto& disabledControllerGUID : disabledControllerGUIDs)
+		{
+			if (disabledControllerGUID.Equals(guid, ESearchCase::IgnoreCase)) {
+				disabled = true;
+				return;
+			}
+		}
 
             SDL_GameController* controller = SDL_GameControllerFromInstanceID(joystickId);
             if(controller)
@@ -125,7 +72,7 @@ public:
         }
     }
 
-    FSDLController(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler)
+FSDLController::FSDLController(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler)
         : MessageHandler(InMessageHandler)
 	{
         // SDL_CONTROLLERDEVICEADDED May get called for every joystick, so this may be redundant
@@ -135,23 +82,16 @@ public:
         }
     }
 
-    ~FSDLController()
+void FSDLController::Tick(float DeltaTime)
 	{
-        for(int32 i = 0; i < controllers.Num(); i++)
-        {
-            if(controllers[i] != nullptr)
-            {
-                SDL_GameControllerClose(controllers[i]);
-                controllers[i] = nullptr;
-            }
-        }
+		//if not done that way it will send multiple analog inputs between frames as their summ 
+		for (const TPair<TPair<int, FName>, float>& pair : AxisValues)
+		{
+			MessageHandler->OnControllerAnalog(pair.Key.Value, pair.Key.Key, pair.Value);
+		}
     }
 
-    virtual void Tick(float DeltaTime) override
-	{
-    }
-
-    virtual void SendControllerEvents() override
+void FSDLController::SendControllerEvents()
     {
         static const FGamepadKeyNames::Type ButtonMap[SDL_CONTROLLER_BUTTON_MAX] =
         {
@@ -164,8 +104,8 @@ public:
             FGamepadKeyNames::SpecialRight,
             FGamepadKeyNames::LeftThumb,
             FGamepadKeyNames::RightThumb,
-            FGamepadKeyNames::LeftTriggerThreshold,
-            FGamepadKeyNames::RightTriggerThreshold,
+            FGamepadKeyNames::LeftShoulder,
+            FGamepadKeyNames::RightShoulder,
             FGamepadKeyNames::DPadUp,
             FGamepadKeyNames::DPadDown,
             FGamepadKeyNames::DPadLeft,
@@ -178,8 +118,8 @@ public:
             FGamepadKeyNames::LeftAnalogY,
             FGamepadKeyNames::RightAnalogX,
             FGamepadKeyNames::RightAnalogY,
-            FGamepadKeyNames::LeftShoulder,
-            FGamepadKeyNames::RightShoulder,
+            FGamepadKeyNames::LeftTriggerAnalog,
+            FGamepadKeyNames::RightTriggerAnalog,
         };
 
         static const float InvertMap[SDL_CONTROLLER_AXIS_MAX] =
@@ -191,6 +131,7 @@ public:
             1.f,
             1.f,
         };
+
 
         SDL_Event event;
         while(SDL_PollEvent(&event))
@@ -215,7 +156,15 @@ public:
                 switch(event.type)
                 {
                 case SDL_CONTROLLERAXISMOTION:
-                    MessageHandler->OnControllerAnalog(AxisMap[event.caxis.axis], index, InvertMap[event.caxis.axis] * ShortToNormalizedFloat(event.caxis.value));
+					axis.Key = index;
+					axis.Value = AxisMap[event.caxis.axis];
+					if (AxisValues.Contains(axis)) {
+						float& value = AxisValues.Emplace(axis);
+						value = InvertMap[event.caxis.axis] * ShortToNormalizedFloat(event.caxis.value);
+					}
+					else {
+						AxisValues.Add(axis, InvertMap[event.caxis.axis] * ShortToNormalizedFloat(event.caxis.value));
+					}
                     break;
                 case SDL_CONTROLLERBUTTONDOWN:
                 {
@@ -260,30 +209,20 @@ public:
         }
     }
 
-    virtual void SetChannelValue(int32 ControllerId, FForceFeedbackChannelType ChannelType, float Value) override
+void FSDLController::SetChannelValue(int32 ControllerId, FForceFeedbackChannelType ChannelType, float Value)
     {
     }
 
-    virtual void SetChannelValues(int32 ControllerId, const FForceFeedbackValues& Values) override
+void FSDLController::SetChannelValues(int32 ControllerId, const FForceFeedbackValues& Values)
     {
     }
 
-    virtual void SetMessageHandler(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler) override
+void FSDLController::SetMessageHandler(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler)
     {
         MessageHandler = InMessageHandler;
     }
 
-    virtual bool Exec(UWorld* InWorld, const TCHAR* cmd, FOutputDevice& ar) override
+bool FSDLController::Exec(UWorld* InWorld, const TCHAR* cmd, FOutputDevice& ar)
     {
         return false;
     }
-};
-
-TSharedPtr<class IInputDevice> FSDLControllerModule::CreateInputDevice(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler)
-{
-    return TSharedPtr<class IInputDevice>(new FSDLController(InMessageHandler));
-}
-
-#undef LOCTEXT_NAMESPACE
-	
-IMPLEMENT_MODULE(FSDLControllerModule, SDLController)
