@@ -7,27 +7,17 @@ public class SDLController : ModuleRules
 {
     public SDLController(ReadOnlyTargetRules Target) : base(Target)
     {
-
+        
         PrivateIncludePathModuleNames.Add("TargetPlatform");
-        
-        PublicIncludePaths.AddRange(new string[]
-        {
-            "SDLController/Public"
-        });
-                
-        
-        PrivateIncludePaths.AddRange(new string[]
-        {
-            "SDLController/Private",
-        });
-            
         
         PublicDependencyModuleNames.AddRange(new string[]
         {
             "Core",
+            "CoreUObject",
             "Engine",
             "SDL2Library",
-            "Projects"
+            "Projects",
+            "ApplicationCore"
         });
 
 
