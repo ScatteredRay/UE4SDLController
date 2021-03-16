@@ -1,6 +1,10 @@
 #pragma once
 
-#include "SDL2Library/include/SDL.h"
+// SDL triggers a warning for undefined preprocessor macros, disables that.
+#pragma warning(push)
+#pragma warning(disable : 4668)
+#include "SDL.h"
+#pragma warning(pop)
 #include "IInputDeviceModule.h"
 
 class FSDLController : public IInputDevice

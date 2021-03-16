@@ -1,28 +1,32 @@
 {
-	"FileVersion": 3,
-	"Version": 1,
-	"VersionName": "1.0",
-	"FriendlyName": "SDL Controller Plugin",
-	"Description": "InputDevice plugin for SDL based controllers.",
-	"Category": "Input Devices",
-	"CreatedBy": "Indy Ray",
-	"CreatedByURL": "",
-	"DocsURL": "",
-	"MarketplaceURL": "",
-	"SupportURL": "",
-	"EnabledByDefault": false,
-	"CanContainContent": false,
-	"IsBetaVersion": false,
-	"Installed": false,
-	"Modules": [
-		{
-			"Name": "SDLController",
-			"Type": "Developer",
-			"LoadingPhase": "Default",
-            "WhitelistPlatforms" :
-            [
+    "FileVersion": 3,
+    "Version": 1,
+    "VersionName": "1.0",
+    "FriendlyName": "SDL Controller Plugin",
+    "Description": "InputDevice plugin for SDL based controllers.",
+    "Category": "Input Devices",
+    "CreatedBy": "Indy Ray",
+    "CreatedByURL": "",
+    "DocsURL": "",
+    "MarketplaceURL": "",
+    "SupportURL": "",
+    "EnabledByDefault": false,
+    "CanContainContent": false,
+    "IsBetaVersion": false,
+    "Installed": false,
+    "Modules": [
+        {
+            "Name": "SDLController",
+            "Type": "Developer",
+            "LoadingPhase": "Default",
+            "WhitelistPlatforms" : [
                 "Win64"
             ]
-		}
-	]
+        }
+    ],
+    "PreBuildSteps": {
+        "Win64" : [
+            "powershell.exe $(PluginDir)\\Source\\ThirdParty\\SDLThirdPartyBuild.ps1 -PluginDir $(PluginDir) -VSVersion 2017 -Configuration $(TargetConfiguration)"
+        ]
+    }
 }

@@ -7,15 +7,15 @@ public class SDLController : ModuleRules
 {
     public SDLController(ReadOnlyTargetRules Target) : base(Target)
     {
-        
+
         PrivateIncludePathModuleNames.Add("TargetPlatform");
-        
+
         PublicDependencyModuleNames.AddRange(new string[]
         {
             "Core",
             "CoreUObject",
             "Engine",
-            "SDL2Library",
+            "SDLLibrary",
             "Projects",
             "ApplicationCore"
         });
@@ -23,7 +23,7 @@ public class SDLController : ModuleRules
 
         PrivateDependencyModuleNames.AddRange(new string[]
         {
-			"InputDevice",
+            "InputDevice",
             "SlateCore"
         });
 
@@ -32,6 +32,6 @@ public class SDLController : ModuleRules
         {
         });
 
-        AddEngineThirdPartyPrivateStaticDependencies(Target, "SDL2Library");
+        AddEngineThirdPartyPrivateStaticDependencies(Target, "SDLLibrary");
     }
 }
