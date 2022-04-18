@@ -29,9 +29,9 @@ public class SDLLibrary : ModuleRules
 
         if (Target.Platform == UnrealTargetPlatform.Win64)
         {
-            string LibPath = Path.Combine(PluginDirectory, "Source", "ThirdParty", "SDL", "VisualC", "SDL", "x64", BuildConfig);
+            string LibPath = Path.Combine(PluginDirectory, "Binaries", "Win64");
             if(!Directory.Exists(LibPath)) {
-                Directory.CreateDirectory(LibPath);
+                //Directory.CreateDirectory(LibPath);
             }
 
             PublicLibraryPaths.Add(LibPath);

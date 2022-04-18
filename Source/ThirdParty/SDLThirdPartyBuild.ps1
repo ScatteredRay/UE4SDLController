@@ -128,10 +128,12 @@ else {
 }
 
 
+$OutputBinDir = (Join-Path $PluginDir "Binaries\Win64")
+
 Write-Output "Building SDL in $SDLDir"
 Push-Location
 cd $SDLDir
-msbuild "$SDLDir\VisualC\SDL\SDL.vcxproj" -p:Configuration=$BuildConfiguration -p:Platform=$Arch -p:PlatformToolset=$PlatformToolset -p:WindowsTargetPlatformVersion=$WindowsSDKVer
+msbuild "$SDLDir\VisualC\SDL\SDL.vcxproj" -p:Configuration=$BuildConfiguration -p:Platform=$Arch -p:PlatformToolset=$PlatformToolset -p:WindowsTargetPlatformVersion=$WindowsSDKVer -p:OutDir=$OutputBinDir
 
 # Where should the dll end up so that it packages correctlly, and so the game/editor can find it?
 #New-Item -path (Join-Path $PluginDir "Binaries\Win64") -type Directory -ErrorAction SilentlyContinue

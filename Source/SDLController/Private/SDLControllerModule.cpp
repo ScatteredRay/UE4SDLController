@@ -12,7 +12,7 @@ void FSDLControllerModule::StartupModule()
 
 	FString LibraryPath;
 #ifdef PLATFORM_WINDOWS
-	LibraryPath = FPaths::Combine(*BaseDir, TEXT("Source/ThirdParty/SDL/VisualC/SDL/x64/Release/SDL2.dll"));
+	LibraryPath = FPaths::Combine(*BaseDir, TEXT("Binaries/Win64/SDL2.dll"));
 #endif // PLATFORM_WINDOWS
 
 	SDL2Handle = !LibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*LibraryPath) : nullptr;
