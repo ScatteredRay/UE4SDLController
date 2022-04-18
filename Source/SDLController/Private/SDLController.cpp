@@ -6,9 +6,6 @@
 
 DEFINE_LOG_CATEGORY_STATIC(LogSDLController, Log, All);
 
-#define LOCTEXT_NAMESPACE "FSDLControllerModule"
-
-
 void FSDLController::AddJoystick(int32 joystickId)
 {
 	TArray<FString> disabledControllerGUIDs = GetDefault<USDLControllerConfig>()->disabledControllerGUIDs;

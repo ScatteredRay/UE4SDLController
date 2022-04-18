@@ -3,7 +3,11 @@
 #include "SDLController.h"
 #include "Developer/Settings/Public/ISettingsModule.h"
 #include "Developer/Settings/Public/ISettingsSection.h"
+#include "Interfaces/IPluginManager.h"
+#include "Misc/MessageDialog.h"
 #include "SDLControllerConfig.h"
+
+#define LOCTEXT_NAMESPACE "FSDLControllerModule"
 
 void FSDLControllerModule::StartupModule()
 {
