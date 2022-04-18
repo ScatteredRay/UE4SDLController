@@ -2,7 +2,7 @@
 # See the LICENSE file for usage, modification, and distribution terms.
 Param(
     $PluginDir,
-    [ValidateSet("2017", "2019")]
+    [ValidateSet("2017", "2019", "2022")]
     $VSVersion = "2017",
     [ValidateSet("Shipping", "Development", "Test", "Debug", "DebugGame")]
     $Configuration="Development",
@@ -30,6 +30,9 @@ if([string]::IsNullOrEmpty($PlatformToolset)) {
         }
         "2019" {
             $PlatformToolset="v142"
+        }
+        "2022" {
+            $PlatformToolset="v143"
         }
         Default {
             Write-Error "Unexpected Visual Studio Version: $VSVersion."
@@ -100,6 +103,9 @@ if(![string]::IsNullOrEmpty($VSVersion)){
         }
         "2019" {
             $Range = "(16.0, 17.0]"
+        }
+        "2022" {
+            $Range = "(17.0, 18.0]"
         }
         Default {
             Write-Error "Unexpected Visual Studio Version: $VSVersion."
